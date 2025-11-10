@@ -1,31 +1,35 @@
-import pandas as pd
-import numpy as np
+import os
 import random
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
 import tsplib95
 from codecarbon import track_emissions
 
-from pathlib import Path
 
-def get_instance(instancia):
+def get_instance(instance_name):
     base_dir = Path(__file__).resolve().parent.parent
-    local = base_dir / 'data_Sets' / instancia / instancia
-    return tsplib95.load(local)
+    instance_path = base_dir / 'instance' / instance_name
+    return tsplib95.load(instance_path)
 
 def reward_function(r_type, distance):
     if r_type == '1/d':
-        return 1.0 / distance if distance != 0 else 0
+        return 1.0 / distance if distance != 0 else 0.0
     elif r_type == '-d':
         return -distance
     elif r_type == '-(d^2)':
         return -(distance ** 2)
+    return None
      
 def epsilon_decay(e_type, episode, total_episodes):
     if e_type == 'linear':
-        return (1 - (episode / total_episodes))
+        return 1 - (episode / total_episodes)
     elif e_type == 'concave':
         return 0.999 ** episode
     elif e_type == 'convex':
         return - (episode / total_episodes) ** 6 + 1
+    return None
 
 @track_emissions
 def train_Qlearning(r_type, e_type, matrix_d, n_points, episodes, alpha, gamma, epsilon):
@@ -75,40 +79,44 @@ def train_Qlearning(r_type, e_type, matrix_d, n_points, episodes, alpha, gamma, 
             best_distance = curr_distance
             best_path = path.copy()
 
-        epsilon = epsilon_decay('linear', ep, episodes)
+        epsilon = epsilon_decay(e_type, ep, episodes)
         
 
     print("\n--- Resultados ---")
-    print(f"O melhor caminho encontrado durante o treinamento foi:")
+    print("O melhor caminho encontrado durante o treinamento foi:")
     print(f"Caminho: {' -> '.join(map(str, best_path))}")
     print(f"Distância Total: {best_distance:.2f}")
 
-
-br17 = 'br17.atsp'
-ftv33 = 'ftv33.atsp'
-ftv64 = 'ftv64.atsp'
-
-
-
-problem = get_instance(ftv33)
-
-""" Problem parameters """
-dist_matrix = np.array([[problem.get_weight(i, j) for j in problem.get_nodes()] for i in problem.get_nodes()])
-n_points = problem.dimension
-
-
-""" Q-learning parameters """
+instance_names = ['berlin52.tsp', 'br17.atsp', 'eil51.tsp', 'ftv33.atsp', 'ftv64.atsp', 'kroA100.tsp', 'st70.tsp', 'tsp225.tsp']
+instance_folder = 'instance'
 
 alpha = 0.01 #Learning rate
 gamma = 0.15 #Discount factor
 epsilon = 1.0 #Exploration rate
 
+epsilon_decay_types = ['linear', 'concave', 'convex']
+reward_types = ['1/d', '-d', '-(d^2)']
 
+for instance_name in instance_names:
+    instance_path = os.path.join(instance_folder, instance_name)
+    problem = get_instance(instance_path)
 
-train_Qlearning(r_type='1/d', e_type='linear', matrix_d=dist_matrix, n_points=n_points, episodes=10000, alpha=alpha, gamma=gamma, epsilon=epsilon)
+    dist_matrix = np.array([
+        [problem.get_weight(i, j) for j in problem.get_nodes()]
+        for i in problem.get_nodes()
+    ])
+    n_points = problem.dimension
 
-
-
-
-
-
+    for e_type in epsilon_decay_types:
+        for r_type in reward_types:
+            print(f"Training on instance '{instance_name}' with epsilon='{e_type}' and reward='{r_type}'")
+            train_Qlearning(
+                r_type=r_type,
+                e_type=e_type,
+                matrix_d=dist_matrix,
+                n_points=n_points,
+                episodes=10000,
+                alpha=alpha,
+                gamma=gamma,
+                epsilon=epsilon
+            )
