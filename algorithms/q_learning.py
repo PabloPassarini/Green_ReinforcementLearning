@@ -23,6 +23,8 @@ def reward_function(r_type, distance):
     return None
      
 def epsilon_decay(e_type, episode, total_episodes):
+    # Faltou a opção 4) The 𝜀 is initially 1 and decreases by 0.1 after every
+    # thousand pieces of training.
     if e_type == 'linear':
         return 1 - (episode / total_episodes)
     elif e_type == 'concave':
@@ -89,6 +91,13 @@ def train_Qlearning(r_type, e_type, matrix_d, n_points, episodes, alpha, gamma, 
 
 instance_names = ['berlin52.tsp', 'br17.atsp', 'eil51.tsp', 'ftv33.atsp', 'ftv64.atsp', 'kroA100.tsp', 'st70.tsp', 'tsp225.tsp']
 instance_folder = 'instance'
+
+# Falta adjustar estes hiperparâmetros
+# The learning rate (𝛼) is set to 0.01, and the discount coefficient (𝛾)
+# is varied based on the problem instance: (0.01, 0.15, 0.3, 0.45,
+# 0.6, 0.75, 0.9, 0.99) [18] for eil51, berlin52 TSP instances, and
+# br17, ftv64 ATSP instances and (0.01, 0.15, 0.3, 0.45) for st70,
+# kroA100, tsp225 TSP instances, and ftv170 ATSP instance.
 
 alpha = 0.01 #Learning rate
 gamma = 0.15 #Discount factor
