@@ -223,6 +223,7 @@ instance_names = [
     'berlin52.tsp', 'br17.atsp', 'eil51.tsp', 'ftv33.atsp',
     'ftv64.atsp', 'kroA100.tsp', 'st70.tsp', 'tsp225.tsp'
 ]
+
 instance_folder = 'instances'
 
 learning_rate = 0.01  # Learning rate
@@ -245,7 +246,18 @@ for instance_name in instance_names:
         for e_type in epsilon_decay_types:
             for r_type in reward_types:
                 print(f"Training on instance '{instance_name}' with epsilon='{e_type}' and reward='{r_type}'")
-                train_q_learning(
+                '''train_q_learning(
+                    instance=instance_name,
+                    r_type=r_type,
+                    e_type=e_type,
+                    matrix_d=dist_matrix,
+                    n_points=n_points,
+                    episodes=10000,
+                    alpha=learning_rate,
+                    gamma=gamma,
+                    epsilon=epsilon
+                )'''
+                train_sarsa(
                     instance=instance_name,
                     r_type=r_type,
                     e_type=e_type,
