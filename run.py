@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Run experiments: run one algorithm fully, then the other (if requested)."""
-
 import argparse
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import List
 
 import numpy as np
 import tsplib95
@@ -12,82 +12,99 @@ from algorithms.sarsa import SarsaTrainer
 
 
 def get_instance(filename: str) -> tsplib95.models.StandardProblem:
-    """Load TSPLIB instance from the project's instances directory."""
+    """Load a TSPLIB instance from the project's instances directory."""
     base_dir = Path(__file__).resolve().parent
     instance_path = base_dir / "instances" / filename
+    if not instance_path.exists():
+        raise FileNotFoundError(f"Instance file not found: {instance_path}")
     return tsplib95.load(instance_path)
+
+
+def utc_timestamp_tag() -> str:
+    """Return compact UTC timestamp like 20251112T161530Z."""
+    return datetime.now(timezone.utc).strftime("%Y%m%-dT%-H%-M%S%fZ")
 
 
 def run_algorithm(
     algorithm: str,
-    instances: list,
+    instances: List[str],
     episodes: int,
     epsilon: float,
     alpha: float,
+    repeat: int,
 ) -> None:
-    """Run the selected algorithm across all instances and hyperparameters."""
+    """Run a single algorithm across instances and hyperparameter grid, repeated as requested."""
     epsilon_decay_types = ["linear", "concave", "convex", "step"]
     reward_types = ["R1", "R2", "R3"]
     gamma_set = [0.01, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 0.99]
 
-    for instance_name in instances:
-        problem = get_instance(instance_name)
-        nodes = list(problem.get_nodes())
-        dist_matrix = np.array([[problem.get_weight(i, j) for j in nodes] for i in nodes])
-        n_points = problem.dimension
+    for rep in range(repeat):
+        run_index = rep + 1
+        print(f"\n=== Repetition {run_index}/{repeat} ===")
 
-        for gamma in gamma_set:
-            for e_type in epsilon_decay_types:
-                for r_type in reward_types:
-                    print(
-                        f"{algorithm.upper()}: instance={instance_name} "
-                        f"e_decay={e_type} reward={r_type} gamma={gamma}"
-                    )
+        for instance_name in instances:
+            try:
+                problem = get_instance(instance_name)
+            except FileNotFoundError as exc:
+                print(f"Skipping instance {instance_name}: {exc}")
+                continue
 
-                    if algorithm == "qlearning":
-                        trainer = QLearningTrainer(
-                            instance=instance_name,
-                            r_type=r_type,
-                            e_type=e_type,
-                            matrix_d=dist_matrix,
-                            n_points=n_points,
-                            episodes=episodes,
-                            alpha=alpha,
-                            gamma=gamma,
-                            epsilon=epsilon,
+            nodes = list(problem.get_nodes())
+            dist_matrix = np.array(
+                [[problem.get_weight(i, j) for j in nodes] for i in nodes], dtype=float
+            )
+            n_points = problem.dimension
+
+            for gamma in gamma_set:
+                for e_type in epsilon_decay_types:
+                    for r_type in reward_types:
+                        print(
+                            f"{algorithm.upper()}: instance={instance_name} e_decay={e_type} "
+                            f"reward={r_type} gamma={gamma} run_index={run_index}"
                         )
-                        trainer.train()
 
-                    elif algorithm == "sarsa":
-                        trainer = SarsaTrainer(
-                            instance=instance_name,
-                            r_type=r_type,
-                            e_type=e_type,
-                            matrix_d=dist_matrix,
-                            n_points=n_points,
-                            episodes=episodes,
-                            alpha=alpha,
-                            gamma=gamma,
-                            epsilon=epsilon,
-                        )
-                        trainer.train()
+                        if algorithm == "qlearning":
+                            trainer = QLearningTrainer(
+                                instance=instance_name,
+                                r_type=r_type,
+                                e_type=e_type,
+                                matrix_d=dist_matrix,
+                                n_points=n_points,
+                                episodes=episodes,
+                                alpha=alpha,
+                                gamma=gamma,
+                                epsilon=epsilon,
+                                run_index=run_index,
+                            )
+                            per_path, summary_path = trainer.train()
+                            print(f"Saved: {per_path}, {summary_path}")
 
-                    else:
-                        raise ValueError(f"Unknown algorithm: {algorithm}")
+                        elif algorithm == "sarsa":
+                            trainer = SarsaTrainer(
+                                instance=instance_name,
+                                r_type=r_type,
+                                e_type=e_type,
+                                matrix_d=dist_matrix,
+                                n_points=n_points,
+                                episodes=episodes,
+                                alpha=alpha,
+                                gamma=gamma,
+                                epsilon=epsilon,
+                                run_index=run_index,
+                            )
+                            per_path, summary_path = trainer.train()
+                            print(f"Saved: {per_path}, {summary_path}")
+
+                        else:
+                            raise ValueError(f"Unknown algorithm: {algorithm}")
 
 
 def main() -> None:
-    """Parse CLI and run experiments in the requested order."""
     parser = argparse.ArgumentParser(description="Run TSP RL experiments")
-    parser.add_argument(
-        "--algorithm",
-        choices=["qlearning", "sarsa", "both"],
-        default="both",
-        help="Which algorithm to run (qlearning, sarsa, or both).",
-    )
-    parser.add_argument("--episodes", type=int, default=10000, help="Number of episodes per run.")
-    parser.add_argument("--epsilon", type=float, default=1.0, help="Initial epsilon value.")
-    parser.add_argument("--alpha", type=float, default=0.01, help="Learning rate.")
+    parser.add_argument("--algorithm", choices=["qlearning", "sarsa", "both"], default="both")
+    parser.add_argument("--episodes", type=int, default=10000)
+    parser.add_argument("--epsilon", type=float, default=1.0)
+    parser.add_argument("--alpha", type=float, default=0.01)
     parser.add_argument(
         "--instances",
         nargs="+",
@@ -103,16 +120,16 @@ def main() -> None:
         ],
         help="List of instance filenames located in ./instances",
     )
+    parser.add_argument("--repeat", type=int, default=1, help="How many times to repeat the full experiment.")
     args = parser.parse_args()
 
-    # Run in the requested order: if both, run qlearning fully then sarsa fully.
     if args.algorithm == "qlearning":
-        run_algorithm("qlearning", args.instances, args.episodes, args.epsilon, args.alpha)
+        run_algorithm("qlearning", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
     elif args.algorithm == "sarsa":
-        run_algorithm("sarsa", args.instances, args.episodes, args.epsilon, args.alpha)
-    else:  # both
-        run_algorithm("qlearning", args.instances, args.episodes, args.epsilon, args.alpha)
-        run_algorithm("sarsa", args.instances, args.episodes, args.epsilon, args.alpha)
+        run_algorithm("sarsa", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
+    else:
+        run_algorithm("qlearning", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
+        run_algorithm("sarsa", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
 
 
 if __name__ == "__main__":

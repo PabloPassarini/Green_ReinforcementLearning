@@ -1,50 +1,80 @@
 from pathlib import Path
-from typing import List
+from typing import Dict, List
+
 import pandas as pd
 
 
-def save_per_episode(results_dir: Path, base_name: str, distances: List[float]) -> Path:
-    """Save per-episode CSV with only Episode and Distance columns."""
-    df = pd.DataFrame({"Episode": list(range(len(distances))), "Distance": distances})
-    out_path = results_dir / f"{base_name}_results.csv"
-    df.to_csv(out_path, index=False)
-    return out_path
+def ensure_dir(path: Path) -> Path:
+    """Create directory if missing and return it."""
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def append_df_to_csv(df: pd.DataFrame, out_path: Path) -> None:
+    """
+    Append DataFrame to CSV; write header only if file does not exist.
+    Ensures parent directory exists before writing.
+    """
+    ensure_dir(out_path.parent)
+    header = not out_path.exists()
+    # Pandas handles writing header based on the header flag.
+    df.to_csv(out_path, mode="a", header=header, index=False)
+
+
+def save_per_episode(
+    results_dir: Path,
+    base_name: str,
+    distances: List[float],
+    metadata: Dict[str, object],
+    master_episodes_name: str = "master_episodes.csv",
+) -> Path:
+    """
+    Save per-run episode CSV and append per-episode rows to a master CSV.
+
+    metadata must include run_index, algorithm, instance, r_type, e_type, gamma.
+    """
+    ensure_dir(results_dir)
+    per_df = pd.DataFrame({"Episode": list(range(len(distances))), "Distance": distances})
+    per_path = results_dir / f"{base_name}_results.csv"
+    per_df.to_csv(per_path, index=False)
+
+    rows = []
+    run_idx = metadata.get("run_index", 0)
+    for i, d in enumerate(distances):
+        rows.append(
+            {
+                "run_index": run_idx,
+                "algorithm": metadata.get("algorithm"),
+                "instance": metadata.get("instance"),
+                "r_type": metadata.get("r_type"),
+                "e_type": metadata.get("e_type"),
+                "gamma": metadata.get("gamma"),
+                "episode": i,
+                "distance": d,
+            }
+        )
+    master_df = pd.DataFrame(rows)
+    master_path = results_dir / master_episodes_name
+    append_df_to_csv(master_df, master_path)
+    return per_path
 
 
 def save_summary(
     results_dir: Path,
     base_name: str,
-    instance: str,
-    r_type: str,
-    e_type: str,
-    gamma: float,
-    best_episode: int,
-    best_distance: float,
-    best_path: List[int],
-    emissions_data,
+    summary_row: Dict[str, object],
+    master_summary_name: str = "master_summary.csv",
 ) -> Path:
-    """Save a one-row summary CSV including experiment metadata and emissions metrics."""
-    row = {
-        "Instance": instance,
-        "RewardType": r_type,
-        "EpsilonDecay": e_type,
-        "Gamma": gamma,
-        "BestEpisode": best_episode,
-        "BestDistance": best_distance,
-        "BestPath": " -> ".join(map(str, best_path)),
-        "Duration_sec": getattr(emissions_data, "duration", None),
-        "Emissions_kgCO2": getattr(emissions_data, "emissions", None),
-        "EmissionsRate_kgCO2_per_sec": getattr(emissions_data, "emissions_rate", None),
-        "CPU_Power_W": getattr(emissions_data, "cpu_power", None),
-        "GPU_Power_W": getattr(emissions_data, "gpu_power", None),
-        "RAM_Power_W": getattr(emissions_data, "ram_power", None),
-        "CPU_Energy_Wh": getattr(emissions_data, "cpu_energy", None),
-        "GPU_Energy_Wh": getattr(emissions_data, "gpu_energy", None),
-        "RAM_Energy_Wh": getattr(emissions_data, "ram_energy", None),
-        "Total_Energy_Wh": getattr(emissions_data, "energy_consumed", None),
-        "Water_Consumed_L": getattr(emissions_data, "water_consumed", None),
-    }
-    df = pd.DataFrame([row])
-    out_path = results_dir / f"{base_name}_summary.csv"
-    df.to_csv(out_path, index=False)
-    return out_path
+    """
+    Save per-run summary file and append the single-row summary to a master CSV.
+
+    summary_row should include a 'run_index' field and other summary columns.
+    """
+    ensure_dir(results_dir)
+    summary_df = pd.DataFrame([summary_row])
+    per_path = results_dir / f"{base_name}_summary.csv"
+    summary_df.to_csv(per_path, index=False)
+
+    master_path = results_dir / master_summary_name
+    append_df_to_csv(summary_df, master_path)
+    return per_path

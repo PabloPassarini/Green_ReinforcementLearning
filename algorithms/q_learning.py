@@ -10,8 +10,14 @@ from utils.reward_utils import epsilon_decay, reward_function
 class QLearningTrainer(BaseTrainer):
     """Q-learning trainer implementation for TSP."""
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, algorithm_name="q_learning", results_subdir="q-learning", **kwargs)
+    def __init__(self, *args, run_index: int = 0, **kwargs) -> None:
+        super().__init__(
+            *args,
+            algorithm_name="q_learning",
+            results_subdir="q-learning",
+            run_index=run_index,
+            **kwargs,
+        )
 
     def train(self) -> Tuple[str, str]:
         """Run Q-learning training, track emissions and save results."""

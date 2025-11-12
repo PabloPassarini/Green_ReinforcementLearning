@@ -1,8 +1,6 @@
 import random
 from typing import Tuple
 
-import numpy as np
-
 from .base_trainer import BaseTrainer
 from utils.reward_utils import reward_function, epsilon_decay
 
@@ -10,8 +8,14 @@ from utils.reward_utils import reward_function, epsilon_decay
 class SarsaTrainer(BaseTrainer):
     """SARSA trainer implementation for TSP."""
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, algorithm_name="sarsa", results_subdir="sarsa", **kwargs)
+    def __init__(self, *args, run_index: int = 0, **kwargs) -> None:
+        super().__init__(
+            *args,
+            algorithm_name="sarsa",
+            results_subdir="sarsa",
+            run_index=run_index,
+            **kwargs,
+        )
 
     def train(self) -> Tuple[str, str]:
         """Run SARSA training, track emissions and save results."""
