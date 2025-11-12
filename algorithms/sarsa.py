@@ -4,17 +4,17 @@ from typing import Tuple
 import numpy as np
 
 from .base_trainer import BaseTrainer
-from utils.reward_utils import epsilon_decay, reward_function
+from utils.reward_utils import reward_function, epsilon_decay
 
 
-class QLearningTrainer(BaseTrainer):
-    """Q-learning trainer implementation for TSP."""
+class SarsaTrainer(BaseTrainer):
+    """SARSA trainer implementation for TSP."""
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, algorithm_name="q_learning", results_subdir="q-learning", **kwargs)
+        super().__init__(*args, algorithm_name="sarsa", results_subdir="sarsa", **kwargs)
 
     def train(self) -> Tuple[str, str]:
-        """Run Q-learning training, track emissions and save results."""
+        """Run SARSA training, track emissions and save results."""
         tracker = self._start_tracker()
 
         for ep in range(self.episodes):
@@ -34,8 +34,18 @@ class QLearningTrainer(BaseTrainer):
                 distance = float(self.matrix_d[current_point][next_point])
                 reward = reward_function(self.r_type, distance)
 
+                if len(unvisited) > 1:
+                    unvisited_next = [p for p in unvisited if p != next_point]
+                    if random.uniform(0, 1) < self.epsilon:
+                        next_next_point = random.choice(unvisited_next)
+                    else:
+                        q_values_next = {p: self.q_table[next_point, p] for p in unvisited_next}
+                        next_next_point = max(q_values_next, key=q_values_next.get)
+                    future_q = float(self.q_table[next_point, next_next_point])
+                else:
+                    future_q = 0.0
+
                 last_q = self.q_table[current_point, next_point]
-                future_q = float(np.max(self.q_table[next_point, :]))
                 new_q = last_q + self.alpha * (reward + self.gamma * future_q - last_q)
                 self.q_table[current_point, next_point] = new_q
 
