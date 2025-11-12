@@ -131,8 +131,6 @@ def train_sarsa(instance, r_type, e_type, matrix_d, n_points, episodes, alpha, g
     summary_filename = f"results/{base_name}_summary.csv"
     summary_df.to_csv(summary_filename, index=False)
 
-
-
 def train_q_learning(instance, r_type, e_type, matrix_d, n_points, episodes, alpha, gamma, epsilon):
     q_table = np.zeros((n_points, n_points))
 
@@ -219,11 +217,103 @@ def train_q_learning(instance, r_type, e_type, matrix_d, n_points, episodes, alp
     summary_filename = f"results/{base_name}_summary.csv"
     summary_df.to_csv(summary_filename, index=False)
 
-instance_names = [
+def train_dqn(instance, r_type, e_type, matrix_d, n_points, episodes, alpha, gamma, epsilon):
+    q1_table = np.zeros((n_points, n_points))
+    q2_table = np.zeros((n_points, n_points))
+
+    best_path = []
+    best_distance = float('inf')
+    distance_history = []
+
+    results_dir = Path('results')
+    base_name = f"{instance}_{r_type}_{e_type}_{gamma}"
+
+    tracker = EmissionsTracker(
+        project_name="dqn_tsp",
+        output_dir=results_dir,
+        output_file=f"{base_name}_emissions.csv"
+    )
+    tracker.start()
+
+    for ep in range(episodes):
+        # Select a random starting point
+        current_point = random.randint(0, n_points - 1)
+        unvisited = list(range(n_points))
+        unvisited.remove(current_point)
+        path = [current_point]
+        current_distance = 0
+
+        while unvisited:
+            # ε-greedy com a média das duas tabelas
+            if random.uniform(0, 1) < epsilon:
+                next_point = random.choice(unvisited)
+            else:
+                q_values = {p: (q1_table[current_point, p] + q2_table[current_point, p]) / 2 for p in unvisited}
+                next_point = max(q_values, key=q_values.get)
+
+            distance = float(matrix_d[current_point][next_point])
+            reward = reward_function(r_type, distance)
+
+            if random.random() < 0.5:
+                # Atualiza Q1 usando Q2
+                best_action = np.argmax(q1_table[next_point, :])
+                target = reward + gamma * q2_table[next_point, best_action]
+                q1_table[current_point, next_point] += alpha * (target - q1_table[current_point, next_point])
+            else:
+                # Atualiza Q2 usando Q1
+                best_action = np.argmax(q2_table[next_point, :])
+                target = reward + gamma * q1_table[next_point, best_action]
+                q2_table[current_point, next_point] += alpha * (target - q2_table[current_point, next_point])
+
+            current_distance += distance
+            path.append(next_point)
+            current_point = next_point
+            unvisited.remove(next_point)
+
+        # Fechar o ciclo
+        last_point = path[-1]
+        current_distance += float(matrix_d[last_point][path[0]])
+        path.append(path[0])
+
+        distance_history.append(current_distance)
+        if current_distance < best_distance:
+            best_distance = current_distance
+            best_path = path.copy()
+
+        epsilon = epsilon_decay(e_type, ep, episodes)
+    
+    emissions_kg = tracker.stop()
+    best_episode = distance_history.index(best_distance)
+
+    results_df = pd.DataFrame({
+        'Episode': list(range(episodes)),
+        'Distance': distance_history,
+    })
+
+    results_filename = f"results/{base_name}_results.csv"
+    results_df.to_csv(results_filename, index=False)
+
+    summary_df = pd.DataFrame([{
+        "Instance": instance,
+        "RewardType": r_type,
+        "EpsilonDecay": e_type,
+        "Gamma": gamma,
+        "BestEpisode": best_episode,
+        "BestDistance": best_distance,
+        "BestPath": " -> ".join(map(str, best_path)),
+        "Emissions_kgCO2": emissions_kg
+    }])
+
+    summary_filename = f"results/dqn_{base_name}_summary.csv"
+    summary_df.to_csv(summary_filename, index=False)
+
+
+
+'''instance_names = [
     'berlin52.tsp', 'br17.atsp', 'eil51.tsp', 'ftv33.atsp',
     'ftv64.atsp', 'kroA100.tsp', 'st70.tsp', 'tsp225.tsp'
-]
-
+]'''
+instance_names = ['br17.atsp']
 instance_folder = 'instances'
 
 learning_rate = 0.01  # Learning rate
@@ -257,7 +347,19 @@ for instance_name in instance_names:
                     gamma=gamma,
                     epsilon=epsilon
                 )'''
-                train_sarsa(
+                '''train_sarsa(
+                    instance=instance_name,
+                    r_type=r_type,
+                    e_type=e_type,
+                    matrix_d=dist_matrix,
+                    n_points=n_points,
+                    episodes=10000,
+                    alpha=learning_rate,
+                    gamma=gamma,
+                    epsilon=epsilon
+                )'''
+
+                train_dqn(
                     instance=instance_name,
                     r_type=r_type,
                     e_type=e_type,
