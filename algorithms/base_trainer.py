@@ -58,7 +58,7 @@ class BaseTrainer:
         tracker = EmissionsTracker(
             project_name=f"{self.base_name}_project",
             output_dir=self.results_dir,
-            output_file=f"{self.base_name}_emissions.csv",
+            #output_file=f"{self.base_name}_emissions.csv",
         )
         tracker.start()
         return tracker

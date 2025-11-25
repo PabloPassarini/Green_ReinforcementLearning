@@ -9,6 +9,7 @@ import tsplib95
 
 from algorithms.q_learning import QLearningTrainer
 from algorithms.sarsa import SarsaTrainer
+from algorithms.dqn import DQNTrainer  # NEW
 
 
 def get_instance(filename: str) -> tsplib95.models.StandardProblem:
@@ -33,7 +34,10 @@ def run_algorithm(
     alpha: float,
     repeat: int,
 ) -> None:
-    """Run a single algorithm across instances and hyperparameter grid, repeated as requested."""
+    """
+    Run the selected algorithm across instances and hyperparameter grid, repeated as requested.
+    Only master CSVs are written by trainers (master_episodes.csv and master_summary.csv).
+    """
     epsilon_decay_types = ["linear", "concave", "convex", "step"]
     reward_types = ["R1", "R2", "R3"]
     gamma_set = [0.01, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 0.99]
@@ -76,8 +80,8 @@ def run_algorithm(
                                 epsilon=epsilon,
                                 run_index=run_index,
                             )
-                            per_path, summary_path = trainer.train()
-                            print(f"Saved: {per_path}, {summary_path}")
+                            master_ep_path, master_sum_path = trainer.train()
+                            print(f"Saved master: {master_ep_path}, {master_sum_path}")
 
                         elif algorithm == "sarsa":
                             trainer = SarsaTrainer(
@@ -92,8 +96,24 @@ def run_algorithm(
                                 epsilon=epsilon,
                                 run_index=run_index,
                             )
-                            per_path, summary_path = trainer.train()
-                            print(f"Saved: {per_path}, {summary_path}")
+                            master_ep_path, master_sum_path = trainer.train()
+                            print(f"Saved master: {master_ep_path}, {master_sum_path}")
+
+                        elif algorithm == "dqn":
+                            trainer = DQNTrainer(
+                                instance=instance_name,
+                                r_type=r_type,
+                                e_type=e_type,
+                                matrix_d=dist_matrix,
+                                n_points=n_points,
+                                episodes=episodes,
+                                alpha=alpha,      # used as learning rate in DQN
+                                gamma=gamma,
+                                epsilon=epsilon,  # initial epsilon; decay handled inside
+                                run_index=run_index,
+                            )
+                            master_ep_path, master_sum_path = trainer.train()
+                            print(f"Saved master: {master_ep_path}, {master_sum_path}")
 
                         else:
                             raise ValueError(f"Unknown algorithm: {algorithm}")
@@ -101,7 +121,8 @@ def run_algorithm(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run TSP RL experiments")
-    parser.add_argument("--algorithm", choices=["qlearning", "sarsa", "both"], default="both")
+    parser.add_argument("--algorithm", choices=["qlearning", "sarsa", "dqn", "all"], default="all",
+                        help="Select a single algorithm or run all three")
     parser.add_argument("--episodes", type=int, default=10000)
     parser.add_argument("--epsilon", type=float, default=1.0)
     parser.add_argument("--alpha", type=float, default=0.01)
@@ -127,9 +148,12 @@ def main() -> None:
         run_algorithm("qlearning", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
     elif args.algorithm == "sarsa":
         run_algorithm("sarsa", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
+    elif args.algorithm == "dqn":
+        run_algorithm("dqn", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
     else:
         run_algorithm("qlearning", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
         run_algorithm("sarsa", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
+        run_algorithm("dqn", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
 
 
 if __name__ == "__main__":

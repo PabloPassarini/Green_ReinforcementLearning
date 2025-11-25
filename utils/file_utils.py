@@ -36,7 +36,7 @@ def save_per_episode(
     ensure_dir(results_dir)
     per_df = pd.DataFrame({"Episode": list(range(len(distances))), "Distance": distances})
     per_path = results_dir / f"{base_name}_results.csv"
-    per_df.to_csv(per_path, index=False)
+    #per_df.to_csv(per_path, index=False)
 
     rows = []
     run_idx = metadata.get("run_index", 0)
@@ -73,7 +73,7 @@ def save_summary(
     ensure_dir(results_dir)
     summary_df = pd.DataFrame([summary_row])
     per_path = results_dir / f"{base_name}_summary.csv"
-    summary_df.to_csv(per_path, index=False)
+    #summary_df.to_csv(per_path, index=False)
 
     master_path = results_dir / master_summary_name
     append_df_to_csv(summary_df, master_path)
