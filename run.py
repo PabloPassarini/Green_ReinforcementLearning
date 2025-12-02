@@ -9,7 +9,7 @@ import tsplib95
 
 from algorithms.q_learning import QLearningTrainer
 from algorithms.sarsa import SarsaTrainer
-from algorithms.dqn import DQNTrainer  # NEW
+from algorithms.double_q import DoubleQTrainer  # NEW
 
 
 def get_instance(filename: str) -> tsplib95.models.StandardProblem:
@@ -99,17 +99,17 @@ def run_algorithm(
                             master_ep_path, master_sum_path = trainer.train()
                             print(f"Saved master: {master_ep_path}, {master_sum_path}")
 
-                        elif algorithm == "dqn":
-                            trainer = DQNTrainer(
+                        elif algorithm == "doubleq":
+                            trainer = DoubleQTrainer(
                                 instance=instance_name,
                                 r_type=r_type,
                                 e_type=e_type,
                                 matrix_d=dist_matrix,
                                 n_points=n_points,
                                 episodes=episodes,
-                                alpha=alpha,      # used as learning rate in DQN
+                                alpha=alpha,
                                 gamma=gamma,
-                                epsilon=epsilon,  # initial epsilon; decay handled inside
+                                epsilon=epsilon,
                                 run_index=run_index,
                             )
                             master_ep_path, master_sum_path = trainer.train()
@@ -121,8 +121,12 @@ def run_algorithm(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run TSP RL experiments")
-    parser.add_argument("--algorithm", choices=["qlearning", "sarsa", "dqn", "all"], default="all",
-                        help="Select a single algorithm or run all three")
+    parser.add_argument(
+        "--algorithm",
+        choices=["qlearning", "sarsa", "doubleq", "all"],
+        default="all",
+        help="Select a single algorithm or run all three (qlearning, sarsa, doubleq)",
+    )
     parser.add_argument("--episodes", type=int, default=10000)
     parser.add_argument("--epsilon", type=float, default=1.0)
     parser.add_argument("--alpha", type=float, default=0.01)
@@ -148,12 +152,13 @@ def main() -> None:
         run_algorithm("qlearning", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
     elif args.algorithm == "sarsa":
         run_algorithm("sarsa", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
-    elif args.algorithm == "dqn":
-        run_algorithm("dqn", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
+    elif args.algorithm == "doubleq":
+        run_algorithm("doubleq", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
     else:
+        # run all three
         run_algorithm("qlearning", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
         run_algorithm("sarsa", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
-        run_algorithm("dqn", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
+        run_algorithm("doubleq", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
 
 
 if __name__ == "__main__":

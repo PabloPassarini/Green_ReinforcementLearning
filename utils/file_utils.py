@@ -34,7 +34,7 @@ def save_per_episode(
     metadata must include run_index, algorithm, instance, r_type, e_type, gamma.
     """
     ensure_dir(results_dir)
-    per_df = pd.DataFrame({"Episode": list(range(len(distances))), "Distance": distances})
+    #per_df = pd.DataFrame({"Episode": list(range(len(distances))), "Distance": distances})
     per_path = results_dir / f"{base_name}_results.csv"
     #per_df.to_csv(per_path, index=False)
 
