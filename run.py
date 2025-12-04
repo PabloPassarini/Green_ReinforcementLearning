@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import argparse
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import List
 
@@ -9,7 +8,9 @@ import tsplib95
 
 from algorithms.q_learning import QLearningTrainer
 from algorithms.sarsa import SarsaTrainer
-from algorithms.double_q import DoubleQTrainer  # NEW
+from algorithms.double_q import DoubleQTrainer
+
+from utils.file_utils import timestamp_tag
 
 
 def get_instance(filename: str) -> tsplib95.models.StandardProblem:
@@ -19,12 +20,6 @@ def get_instance(filename: str) -> tsplib95.models.StandardProblem:
     if not instance_path.exists():
         raise FileNotFoundError(f"Instance file not found: {instance_path}")
     return tsplib95.load(instance_path)
-
-
-def utc_timestamp_tag() -> str:
-    """Return compact UTC timestamp like 20251112T161530Z."""
-    return datetime.now(timezone.utc).strftime("%Y%m%-dT%-H%-M%S%fZ")
-
 
 def run_algorithm(
     algorithm: str,
@@ -42,6 +37,8 @@ def run_algorithm(
     reward_types = ["R1"]
     gamma_set = [0.01, 0.15, 0.3, 0.45]
     alpha = 0.01
+
+    run_timestamp = timestamp_tag()
 
     for rep in range(repeat):
         run_index = rep + 1
@@ -80,6 +77,7 @@ def run_algorithm(
                                 gamma=gamma,
                                 epsilon=epsilon,
                                 run_index=run_index,
+                                run_timestamp=run_timestamp,
                             )
                             master_ep_path, master_sum_path = trainer.train()
                             print(f"Saved master: {master_ep_path}, {master_sum_path}")
@@ -96,6 +94,7 @@ def run_algorithm(
                                 gamma=gamma,
                                 epsilon=epsilon,
                                 run_index=run_index,
+                                run_timestamp=run_timestamp,
                             )
                             master_ep_path, master_sum_path = trainer.train()
                             print(f"Saved master: {master_ep_path}, {master_sum_path}")
@@ -112,6 +111,7 @@ def run_algorithm(
                                 gamma=gamma,
                                 epsilon=epsilon,
                                 run_index=run_index,
+                                run_timestamp=run_timestamp,
                             )
                             master_ep_path, master_sum_path = trainer.train()
                             print(f"Saved master: {master_ep_path}, {master_sum_path}")

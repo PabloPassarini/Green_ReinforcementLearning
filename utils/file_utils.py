@@ -1,7 +1,14 @@
 from pathlib import Path
 from typing import Dict, List
 
+from datetime import datetime, timezone
+
 import pandas as pd
+
+
+def timestamp_tag() -> str:
+    """Return compact UTC timestamp like 20251112T161530Z."""
+    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%z")
 
 
 def ensure_dir(path: Path) -> Path:
@@ -46,8 +53,8 @@ def save_per_episode(
                 "run_index": run_idx,
                 "algorithm": metadata.get("algorithm"),
                 "instance": metadata.get("instance"),
-                "r_type": metadata.get("r_type"),
-                "e_type": metadata.get("e_type"),
+                #"r_type": metadata.get("r_type"),
+                #"e_type": metadata.get("e_type"),
                 "gamma": metadata.get("gamma"),
                 "episode": i,
                 "distance": d,

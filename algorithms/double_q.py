@@ -1,10 +1,8 @@
 # algorithms/double_q.py
 import random
-from pathlib import Path
-from typing import Tuple, List, Optional
+from typing import Tuple, List
 
 import numpy as np
-from codecarbon import EmissionsTracker
 
 from algorithms.base_trainer import BaseTrainer
 from utils.reward_utils import reward_function, epsilon_decay
