@@ -28,6 +28,7 @@ class DoubleQTrainer(BaseTrainer):
         epsilon: float,
         results_subdir: str = "double-q",
         run_index: int = 0,
+        run_timestamp: str = "",
     ) -> None:
         super().__init__(
             instance=instance,
@@ -42,6 +43,7 @@ class DoubleQTrainer(BaseTrainer):
             results_subdir=results_subdir,
             algorithm_name="double_q",
             run_index=run_index,
+            run_timestamp=run_timestamp,
         )
         # override base q_table usage: we keep two tables
         self.q1_table = np.zeros((n_points, n_points))

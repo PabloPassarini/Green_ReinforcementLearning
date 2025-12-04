@@ -65,7 +65,6 @@ class BaseTrainer:
             tracking_mode="process",
             rapl_include_dram=True,
             rapl_prefer_psys=True,
-            allow_multiple_runs=True,
         )
         tracker.start()
         return tracker
