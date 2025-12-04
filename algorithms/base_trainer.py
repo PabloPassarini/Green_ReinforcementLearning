@@ -62,6 +62,10 @@ class BaseTrainer:
             project_name=f"{self.base_name}",
             output_dir=self.results_dir,
             #output_file=f"{self.base_name}_emissions.csv",
+            tracking_mode="process",
+            rapl_include_dram=True,
+            rapl_prefer_psys=True,
+            allow_multiple_runs=True,
         )
         tracker.start()
         return tracker
