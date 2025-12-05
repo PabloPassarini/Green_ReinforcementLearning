@@ -61,7 +61,8 @@ class BaseTrainer:
         tracker = EmissionsTracker(
             project_name=f"{self.base_name}",
             output_dir=self.results_dir,
-            #output_file=f"{self.base_name}_emissions.csv",
+            output_file=f"{self.base_name}_emissions.csv",
+            allow_multiple_runs=True,
             tracking_mode="process",
             rapl_include_dram=True,
             rapl_prefer_psys=True,
