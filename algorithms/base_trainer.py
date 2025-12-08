@@ -86,8 +86,8 @@ class BaseTrainer:
             "run_index": self.run_index,
             "algorithm": self.base_name.split("_")[0],
             "instance": self.instance,
-            #"r_type": self.r_type,
-            #"e_type": self.e_type,
+            "r_type": self.r_type,
+            "e_type": self.e_type,
             "gamma": self.gamma,
         }
         per_path = save_per_episode(self.results_dir, self.base_name, self.distance_history, metadata)
