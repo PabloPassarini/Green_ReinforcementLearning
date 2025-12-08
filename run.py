@@ -135,8 +135,8 @@ def main() -> None:
         "--instances",
         nargs="+",
         default=[
-            "berlin52.tsp",
             "br17.atsp",
+            "berlin52.tsp",
             "eil51.tsp",
             "ftv33.atsp",
             "ftv64.atsp",

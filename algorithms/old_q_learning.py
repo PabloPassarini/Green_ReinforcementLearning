@@ -141,12 +141,12 @@ def train_q_learning(instance, r_type, e_type, matrix_d, n_points, episodes, alp
     results_dir = Path('results')
     base_name = f"{instance}_{r_type}_{e_type}_{gamma}"
 
-    tracker = EmissionsTracker(
+    '''tracker = EmissionsTracker(
         project_name="q_learning_tsp",
         output_dir=results_dir,
         output_file=f"{base_name}_emissions.csv"
     )
-    tracker.start()
+    tracker.start()'''
 
     for ep in range(episodes):
         # Select a random starting point
@@ -190,16 +190,18 @@ def train_q_learning(instance, r_type, e_type, matrix_d, n_points, episodes, alp
 
         epsilon = epsilon_decay(e_type, ep, episodes)
     
-    emissions_kg = tracker.stop()
+    #emissions_kg = tracker.stop()
 
     best_episode = distance_history.index(best_distance)
+    
+    print(best_distance)
 
-    results_df = pd.DataFrame({
+    '''results_df = pd.DataFrame({
         'Episode': list(range(episodes)),
         'Distance': distance_history,
     })
 
-    results_filename = f"results/{base_name}_results.csv"
+    results_filename = f"results/TESTE_1{base_name}_results.csv"
     results_df.to_csv(results_filename, index=False)
 
     # Salvar o tempo de execução
@@ -215,7 +217,7 @@ def train_q_learning(instance, r_type, e_type, matrix_d, n_points, episodes, alp
     }])
 
     summary_filename = f"results/{base_name}_summary.csv"
-    summary_df.to_csv(summary_filename, index=False)
+    summary_df.to_csv(summary_filename, index=False)'''
 
 def train_dqn(instance, r_type, e_type, matrix_d, n_points, episodes, alpha, gamma, epsilon):
     q1_table = np.zeros((n_points, n_points))
@@ -320,7 +322,7 @@ learning_rate = 0.01  # Learning rate
 epsilon = 1.0  # Exploration rate
 
 epsilon_decay_types = ['linear', 'concave', 'convex', 'step']
-reward_types = ['R1', 'R2', 'R3']
+reward_types = ['R1'] #, 'R2', 'R3']
 gamma_set = [0.01, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 0.99]  # Discount factors
 
 for instance_name in instance_names:
@@ -335,8 +337,8 @@ for instance_name in instance_names:
     for gamma in gamma_set:
         for e_type in epsilon_decay_types:
             for r_type in reward_types:
-                print(f"Training on instance '{instance_name}' with epsilon='{e_type}' and reward='{r_type}'")
-                '''train_q_learning(
+                print(f"Training on instance '{instance_name}' with epsilon='{e_type}', reward='{r_type} and gamma={gamma}'")
+                train_q_learning(
                     instance=instance_name,
                     r_type=r_type,
                     e_type=e_type,
@@ -345,8 +347,8 @@ for instance_name in instance_names:
                     episodes=10000,
                     alpha=learning_rate,
                     gamma=gamma,
-                    epsilon=epsilon
-                )'''
+                    epsilon=epsilon)
+                
                 '''train_sarsa(
                     instance=instance_name,
                     r_type=r_type,
@@ -358,7 +360,7 @@ for instance_name in instance_names:
                     gamma=gamma,
                     epsilon=epsilon
                 )'''
-
+                '''
                 train_dqn(
                     instance=instance_name,
                     r_type=r_type,
@@ -369,4 +371,4 @@ for instance_name in instance_names:
                     alpha=learning_rate,
                     gamma=gamma,
                     epsilon=epsilon
-                )
+                )'''

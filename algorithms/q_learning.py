@@ -29,7 +29,7 @@ class QLearningTrainer(BaseTrainer):
             unvisited.remove(current_point)
             path = [current_point]
             current_distance = 0.0
-
+            
             while unvisited:
                 if random.uniform(0, 1) < self.epsilon:
                     next_point = random.choice(unvisited)
@@ -49,7 +49,7 @@ class QLearningTrainer(BaseTrainer):
                 path.append(next_point)
                 current_point = next_point
                 unvisited.remove(next_point)
-
+            
             current_distance += float(self.matrix_d[current_point][path[0]])
             path.append(path[0])
 
