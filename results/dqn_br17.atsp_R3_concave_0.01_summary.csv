@@ -1,0 +1,2 @@
+Instance,RewardType,EpsilonDecay,Gamma,BestEpisode,BestDistance,BestPath,Emissions_kgCO2
+br17.atsp,R3,concave,0.01,990,39.0,15 -> 5 -> 14 -> 6 -> 1 -> 12 -> 10 -> 9 -> 2 -> 13 -> 0 -> 11 -> 16 -> 8 -> 7 -> 3 -> 4 -> 15,5.609362690476818e-06
