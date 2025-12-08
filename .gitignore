@@ -1,4 +1,7 @@
 *.pyc
 __pycache__/
 .DS_Store
-*.csv
+*q_learning_*.csv
+*sarsa_*.csv
+*double_q_*.csv
+*.bak
