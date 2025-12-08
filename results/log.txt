@@ -1,0 +1,25 @@
+[codecarbon INFO @ 14:22:50] [setup] RAM Tracking...
+[codecarbon INFO @ 14:22:50] [setup] CPU Tracking...
+[codecarbon WARNING @ 14:22:51] We saw that you have a 13th Gen Intel(R) Core(TM) i7-1365U but we don't know it. Please contact us.
+[codecarbon WARNING @ 14:22:51] We will use the default power consumption of 4 W per thread for your 12 CPU, so 48W.
+[codecarbon INFO @ 14:22:51] Tracking Intel CPU via RAPL interface
+[codecarbon INFO @ 14:22:53]    RAPL - Using psys (platform/system) domain (rapl_prefer_psys=True). Note: psys includes CPU + platform components (chipset, PCIe, etc.) and may report higher values than CPU TDP spec.
+[codecarbon INFO @ 14:22:53]    RAPL - Package domains available but not used due to rapl_prefer_psys=True
+[codecarbon INFO @ 14:22:53]    RAPL - Selected 1 unique RAPL domain(s) after deduplication
+[codecarbon INFO @ 14:22:53]    RAPL - Monitoring domain 'psys' (displayed as 'Processor Energy Delta_0(kWh)') via MSR at /sys/class/powercap/intel-rapl/subsystem/intel-rapl/intel-rapl:1/energy_uj
+[codecarbon INFO @ 14:22:53] [setup] GPU Tracking...
+[codecarbon INFO @ 14:22:53] No GPU found.
+[codecarbon INFO @ 14:22:53] The below tracking methods have been set up:
+                RAM Tracking Method: RAM power estimation model
+                CPU Tracking Method: RAPL
+                GPU Tracking Method: Unspecified
+            
+[codecarbon INFO @ 14:22:53] >>> Tracker's metadata:
+[codecarbon INFO @ 14:22:53]   Platform system: Linux-6.14.0-36-generic-x86_64-with-glibc2.39
+[codecarbon INFO @ 14:22:53]   Python version: 3.12.3
+[codecarbon INFO @ 14:22:53]   CodeCarbon version: 3.2.0
+[codecarbon INFO @ 14:22:53]   Available RAM : 15.281 GB
+[codecarbon INFO @ 14:22:53]   CPU count: 12 thread(s) in 1 physical CPU(s)
+[codecarbon INFO @ 14:22:53]   CPU model: 13th Gen Intel(R) Core(TM) i7-1365U
+[codecarbon INFO @ 14:22:53]   GPU count: None
+[codecarbon INFO @ 14:22:53]   GPU model: None

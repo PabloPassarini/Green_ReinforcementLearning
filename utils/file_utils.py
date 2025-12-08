@@ -1,7 +1,14 @@
 from pathlib import Path
 from typing import Dict, List
 
+from datetime import datetime, timezone
+
 import pandas as pd
+
+
+def timestamp_tag() -> str:
+    """Return compact UTC timestamp like 20251112T161530Z."""
+    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%z")
 
 
 def ensure_dir(path: Path) -> Path:

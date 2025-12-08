@@ -1,10 +1,8 @@
 # algorithms/double_q.py
 import random
-from pathlib import Path
-from typing import Tuple, List, Optional
+from typing import Tuple, List
 
 import numpy as np
-from codecarbon import EmissionsTracker
 
 from algorithms.base_trainer import BaseTrainer
 from utils.reward_utils import reward_function, epsilon_decay
@@ -30,6 +28,7 @@ class DoubleQTrainer(BaseTrainer):
         epsilon: float,
         results_subdir: str = "double-q",
         run_index: int = 0,
+        run_timestamp: str = "",
     ) -> None:
         super().__init__(
             instance=instance,
@@ -44,6 +43,7 @@ class DoubleQTrainer(BaseTrainer):
             results_subdir=results_subdir,
             algorithm_name="double_q",
             run_index=run_index,
+            run_timestamp=run_timestamp,
         )
         # override base q_table usage: we keep two tables
         self.q1_table = np.zeros((n_points, n_points))

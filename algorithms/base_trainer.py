@@ -24,6 +24,7 @@ class BaseTrainer:
         results_subdir: str,
         algorithm_name: str,
         run_index: int = 0,
+        run_timestamp: str = "",
     ) -> None:
         self.instance = instance
         self.r_type = r_type
@@ -43,22 +44,28 @@ class BaseTrainer:
         self.best_distance: float = float("inf")
         self.distance_history: List[float] = []
 
-        self.results_dir = Path("results") / results_subdir
+        self.timestamp = run_timestamp
+
+        self.results_dir = Path("results") / results_subdir / self.timestamp
         self.results_dir.mkdir(parents=True, exist_ok=True)
 
         # include run index tag when provided to avoid overwrites
         run_tag = f"_r{self.run_index}" if self.run_index else ""
         self.base_name = (
-            f"{algorithm_name}_{self.instance}_{self.r_type}_{self.e_type}"
+            f"{algorithm_name}_{self.instance}"
             f"_gamma{self.gamma}{run_tag}"
         )
 
     def _start_tracker(self) -> EmissionsTracker:
         """Start and return a CodeCarbon EmissionsTracker saving to results_dir."""
         tracker = EmissionsTracker(
-            project_name=f"{self.base_name}_project",
+            project_name=f"{self.base_name}",
             output_dir=self.results_dir,
-            #output_file=f"{self.base_name}_emissions.csv",
+            output_file=f"{self.base_name}_emissions.csv",
+            allow_multiple_runs=True,
+            tracking_mode="process",
+            rapl_include_dram=True,
+            rapl_prefer_psys=True,
         )
         tracker.start()
         return tracker
@@ -93,13 +100,13 @@ class BaseTrainer:
             "Emissions_kgCO2": getattr(emissions_data, "emissions", None),
             "EmissionsRate_kgCO2_per_sec": getattr(emissions_data, "emissions_rate", None),
             "CPU_Power_W": getattr(emissions_data, "cpu_power", None),
-            "GPU_Power_W": getattr(emissions_data, "gpu_power", None),
+            #"GPU_Power_W": getattr(emissions_data, "gpu_power", None),
             "RAM_Power_W": getattr(emissions_data, "ram_power", None),
             "CPU_Energy_Wh": getattr(emissions_data, "cpu_energy", None),
-            "GPU_Energy_Wh": getattr(emissions_data, "gpu_energy", None),
+            #"GPU_Energy_Wh": getattr(emissions_data, "gpu_energy", None),
             "RAM_Energy_Wh": getattr(emissions_data, "ram_energy", None),
             "Total_Energy_Wh": getattr(emissions_data, "energy_consumed", None),
-            "Water_Consumed_L": getattr(emissions_data, "water_consumed", None),
+            #"Water_Consumed_L": getattr(emissions_data, "water_consumed", None),
         }
         summary_path = save_summary(self.results_dir, self.base_name, summary_row)
         return str(per_path), str(summary_path)
