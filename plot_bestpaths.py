@@ -2,8 +2,8 @@
 """
 plot_bestpaths.py
 
-Reads master_summary.csv and the corresponding .tsp instance,
-plots the route indicated in BestPath for each line (run_index, gamma).
+Reads master_summary.csv from a user-specified folder and the corresponding .tsp instance,
+plots the route indicated in BestPath for each line (run_index, gamma, BestEpisode).
 Saves a PNG per combination in plots/<instance>/run_<idx>_gamma_<val>.png
 """
 
@@ -58,6 +58,7 @@ def parse_path_string(path_str: str) -> list[int]:
 def plot_route(coords: dict[int, tuple[float, float]],
                route: list[int],
                title: str,
+               best_episode: int,
                out_file: Path) -> None:
     """Plot a route over the node coordinates and save to file."""
     xs, ys = [], []
@@ -76,7 +77,7 @@ def plot_route(coords: dict[int, tuple[float, float]],
         marker="o",
         label="Nodes",
     )
-    plt.plot(xs, ys, "-", label="Path")
+    plt.plot(xs, ys, "-", label=f"Best Path (Best Episode={best_episode})")
     plt.title(title)
     plt.legend()
     plt.grid(True)
@@ -87,21 +88,26 @@ def plot_route(coords: dict[int, tuple[float, float]],
 
 
 def main() -> None:
-    summary_path = Path(
-        "results/q-learning/20251205T131931+0000/master_summary.csv"
-    )
+    # Ask user for the folder containing master_summary.csv
+    folder = input("Enter the folder containing master_summary.csv: ").strip()
+    summary_path = Path(folder) / "master_summary.csv"
+
+    if not summary_path.exists():
+        raise FileNotFoundError(f"master_summary.csv not found at {summary_path}")
+
     df = pd.read_csv(summary_path)
 
     for _, row in df.iterrows():
         inst_raw = str(row["instance"]).strip()
+
+        if inst_raw.lower().endswith(".atsp"):
+            print(f"Skipping ATSP instance: {inst_raw}")
+            continue
+
         inst_name = (
             inst_raw if inst_raw.lower().endswith(".tsp") else inst_raw + ".tsp"
         )
         tsp_file = Path("instances") / inst_name
-
-        if not tsp_file.exists():
-            print(f"Instance {inst_raw} not found at {tsp_file}")
-            continue
 
         try:
             coords = read_tsp(tsp_file)
@@ -118,6 +124,8 @@ def main() -> None:
 
         run_idx = row["run_index"]
         gamma = row["gamma"]
+        best_episode = int(row["BestEpisode"]) if "BestEpisode" in row else -1
+
         out_file = (
             Path("plots")
             / inst_name.replace(".tsp", "")
@@ -125,10 +133,12 @@ def main() -> None:
         )
         title = f"{inst_name} - run {run_idx}, gamma={gamma}"
         try:
-            plot_route(coords, route, title, out_file)
+            plot_route(coords, route, title, best_episode, out_file)
             print(f"Saved {out_file}")
         except Exception as exc:
-            print(f"Failed to plot {inst_name} run {run_idx} gamma {gamma}: {exc}")
+            print(
+                f"Failed to plot {inst_name} run {run_idx} gamma {gamma}: {exc}"
+            )
 
 
 if __name__ == "__main__":

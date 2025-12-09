@@ -56,6 +56,8 @@ def save_per_episode(
                 "r_type": metadata.get("r_type"),
                 "e_type": metadata.get("e_type"),
                 "gamma": metadata.get("gamma"),
+                "alpha": metadata.get("alpha"),
+                "epsilon": metadata.get("epsilon"),
                 "episode": i,
                 "distance": d,
             }

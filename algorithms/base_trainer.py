@@ -61,11 +61,11 @@ class BaseTrainer:
         tracker = EmissionsTracker(
             project_name=f"{self.base_name}",
             output_dir=self.results_dir,
-            output_file=f"{self.base_name}_emissions.csv",
-            allow_multiple_runs=True,
-            tracking_mode="process",
-            rapl_include_dram=True,
-            rapl_prefer_psys=True,
+          #  output_file=f"{self.base_name}_emissions.csv",
+          #  allow_multiple_runs=True,
+            #tracking_mode="process",
+           # rapl_include_dram=True,
+           # rapl_prefer_psys=True,
         )
         tracker.start()
         return tracker
@@ -89,6 +89,8 @@ class BaseTrainer:
             "r_type": self.r_type,
             "e_type": self.e_type,
             "gamma": self.gamma,
+            "alpha": self.alpha,
+            "epsilon": self.epsilon,
         }
         per_path = save_per_episode(self.results_dir, self.base_name, self.distance_history, metadata)
         summary_row = {

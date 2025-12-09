@@ -1,0 +1,7 @@
+    epsilon_decay_types = ["convex"]
+    reward_types = ["R1", "R2", "R3"]
+    gamma_set = [0.15]
+    alpha = 0.75
+    epsilon = 0,01
+    repeat = 10
+    episodes = 50000
