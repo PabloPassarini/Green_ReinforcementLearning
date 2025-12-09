@@ -76,7 +76,7 @@ def plot_route(coords: dict[int, tuple[float, float]],
         marker="o",
         label="Nodes",
     )
-    plt.plot(xs, ys, "-o", color="red", label="BestPath")
+    plt.plot(xs, ys, "-", label="Path")
     plt.title(title)
     plt.legend()
     plt.grid(True)

@@ -3,6 +3,8 @@ import tsplib95
 import matplotlib.pyplot as plt
 from pathlib import Path
 import os
+
+
 def gerar_grafico(coords, sol, info):
     x = list()
     y = list()
@@ -28,7 +30,7 @@ def gerar_grafico(coords, sol, info):
     plt.legend()
     
     pasta = Path(
-        "plots/Pablo"
+        "plots"
     )
 
     plt.savefig(
@@ -36,21 +38,12 @@ def gerar_grafico(coords, sol, info):
         dpi=300,
         bbox_inches="tight"
     )
-    #plt.show()
-
 
 
 summary_path = Path(
         "results/q-learning/20251205T131931+0000/master_summary.csv"
     )
-berlin = r'F:\Projetos\Programacao\Green_ReinforcementLearning\instances\berlin52.tsp'
-
-
-
-
-
-
-
+berlin = r'instances\berlin52.tsp'
 
 
 df = pd.read_csv(summary_path, decimal='.', sep=',')

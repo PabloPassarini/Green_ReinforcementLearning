@@ -1,2 +1,0 @@
-Instance,RewardType,EpsilonDecay,Gamma,BestEpisode,BestDistance,BestPath,Emissions_kgCO2
-br17.atsp,R2,linear,0.01,4434,39.0,4 -> 3 -> 15 -> 6 -> 5 -> 14 -> 1 -> 12 -> 10 -> 9 -> 13 -> 2 -> 0 -> 11 -> 16 -> 7 -> 8 -> 4,3.951368317875886e-06
