@@ -25,7 +25,7 @@ def gerar_grafico(coords, sol, info):
             y_rota.append(coord[1])
     
     plt.plot(x_rota, y_rota, linewidth=2, alpha=0.7, label='Route')
-    plt.title(f'Instanse: {info[0]} | Run: {sol[2]} | Gamma: {info[1]}')
+    plt.title(f'Instance: {info[0]} | Run: {sol[2]} | Gamma: {info[1]}')
     plt.grid(True)
     plt.legend()
     
@@ -34,7 +34,7 @@ def gerar_grafico(coords, sol, info):
     )
 
     plt.savefig(
-        os.path.join(pasta, f"Instanse_{info[0]}_Run_{sol[2]}_Gamma_{str(info[1]).replace('.', 'p')}.png"),
+        os.path.join(pasta, f"Instance_{info[0]}_Run_{sol[2]}_Gamma_{str(info[1]).replace('.', 'p')}.png"),
         dpi=300,
         bbox_inches="tight"
     )
