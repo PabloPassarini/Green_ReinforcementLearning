@@ -29,7 +29,7 @@ class QLearningTrainer(BaseTrainer):
             unvisited.remove(current_point)
             path = [current_point]
             current_distance = 0.0
-            
+     
             while unvisited:
                 if random.uniform(0, 1) < self.epsilon:
                     next_point = random.choice(unvisited)
@@ -58,7 +58,8 @@ class QLearningTrainer(BaseTrainer):
                 self.best_distance = current_distance
                 self.best_path = path.copy()
 
-            self.epsilon = epsilon_decay(self.e_type, ep, self.episodes)
+            self.epsilon = epsilon_decay(self.e_type, ep, self.episodes,self.epsilon_init)
+            self.epsilon_history.append(self.epsilon)
 
         emissions_data = self._finalize_tracking(tracker)
         return self._save_results(emissions_data)

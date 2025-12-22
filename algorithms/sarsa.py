@@ -65,8 +65,9 @@ class SarsaTrainer(BaseTrainer):
             if current_distance < self.best_distance:
                 self.best_distance = current_distance
                 self.best_path = path.copy()
-
-            self.epsilon = epsilon_decay(self.e_type, ep, self.episodes)
+                
+            self.epsilon = epsilon_decay(self.e_type, ep, self.episodes,self.epsilon_init)
+            self.epsilon_history.append(self.epsilon)
 
         emissions_data = self._finalize_tracking(tracker)
         return self._save_results(emissions_data)

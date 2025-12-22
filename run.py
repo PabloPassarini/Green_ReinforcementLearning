@@ -33,8 +33,8 @@ def run_algorithm(
     Run the selected algorithm across instances and hyperparameter grid, repeated as requested.
     Only master CSVs are written by trainers (master_episodes.csv and master_summary.csv).
     """
-    epsilon_decay_types = ["convex"]
-    reward_types = ["R1", "R2", "R3"]
+    epsilon_decay_types = ["fixed"]
+    reward_types = ["R1"]
     gamma_set = [0.15]
     alpha = 0.75
 

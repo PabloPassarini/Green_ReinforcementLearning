@@ -113,7 +113,8 @@ class DoubleQTrainer(BaseTrainer):
                     self.best_path = path.copy()
 
                 # decay epsilon for next episode
-                self.epsilon = epsilon_decay(self.e_type, ep, self.episodes)
+                self.epsilon = epsilon_decay(self.e_type, ep, self.episodes,self.epsilon_init)
+                self.epsilon_history.append(self.epsilon)
 
             # finalize emissions tracking and save masters
             emissions_data = self._finalize_tracking(tracker)

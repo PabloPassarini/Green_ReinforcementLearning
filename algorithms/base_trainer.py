@@ -35,7 +35,8 @@ class BaseTrainer:
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
-
+        self.epsilon_init = epsilon
+        self.epsilon_history: List[float] = []
         # store repetition index on the instance
         self.run_index = int(run_index)
 
@@ -90,9 +91,8 @@ class BaseTrainer:
             "e_type": self.e_type,
             "gamma": self.gamma,
             "alpha": self.alpha,
-            "epsilon": self.epsilon,
         }
-        per_path = save_per_episode(self.results_dir, self.base_name, self.distance_history, metadata)
+        per_path = save_per_episode(self.results_dir, self.base_name, self.distance_history, metadata,self.epsilon_history)
         summary_row = {
             **metadata,
             "BestEpisode": best_episode,

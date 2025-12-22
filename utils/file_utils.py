@@ -33,6 +33,7 @@ def save_per_episode(
     base_name: str,
     distances: List[float],
     metadata: Dict[str, object],
+    epsilons: List[float],
     master_episodes_name: str = "master_episodes.csv",
 ) -> Path:
     """
@@ -57,7 +58,7 @@ def save_per_episode(
                 "e_type": metadata.get("e_type"),
                 "gamma": metadata.get("gamma"),
                 "alpha": metadata.get("alpha"),
-                "epsilon": metadata.get("epsilon"),
+                "epsilon": epsilons[i],
                 "episode": i,
                 "distance": d,
             }

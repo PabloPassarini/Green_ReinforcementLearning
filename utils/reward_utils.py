@@ -9,8 +9,10 @@ def reward_function(r_type: str, distance: float) -> float:
     raise ValueError(f"Unknown reward type: {r_type}")
 
 
-def epsilon_decay(e_type: str, episode: int, total_episodes: int) -> float:
+def epsilon_decay(e_type: str, episode: int, total_episodes: int,epsilon_init: float) -> float:
     """Return decayed epsilon according to chosen schedule."""
+    if e_type == "fixed":
+        return epsilon_init
     if e_type == "linear":
         return max(0.0, 1.0 - (episode / total_episodes))
     if e_type == "concave":
