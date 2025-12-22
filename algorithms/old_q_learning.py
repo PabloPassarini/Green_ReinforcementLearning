@@ -5,7 +5,31 @@ import numpy as np
 import pandas as pd
 import tsplib95
 from codecarbon import track_emissions, EmissionsTracker, OfflineEmissionsTracker
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
+def gerar_grifico_aprendizagem(distance):
+
+
+
+    x = [_ for _ in range(1, len(distance)+1)]
+
+    plt.figure(figsize=(10.8, 10.8), dpi=100)
+
+    plt.plot(x, distance, color='blue', linewidth=1, label='Distância Total (m)')
+
+    plt.title('Distância Total ao longo dos Episódios')
+    plt.xlabel('Episódios')
+    plt.ylabel('Distância')
+    plt.legend()
+    plt.grid(True)
+
+
+
+    plt.subplots_adjust(top=0.90, bottom=0.12, left=0.10, right=0.97)
+
+
+    plt.show()
 
 def get_instance(filename):
     base_dir = Path(__file__).resolve().parent.parent
@@ -146,6 +170,7 @@ def train_q_learning(instance, r_type, e_type, matrix_d, n_points, episodes, alp
         output_file=f"{base_name}_emissions.csv"
     )
     tracker.start()'''
+    min_d_ep = 0
 
     for ep in range(episodes):
         # Select a random starting point
@@ -186,14 +211,17 @@ def train_q_learning(instance, r_type, e_type, matrix_d, n_points, episodes, alp
         if current_distance < best_distance:
             best_distance = current_distance
             best_path = path.copy()
+            min_d_ep = ep
 
-        epsilon = epsilon_decay(e_type, ep, episodes)
+        #epsilon = epsilon_decay(e_type, ep, episodes)
     
     #emissions_kg = tracker.stop()
 
     best_episode = distance_history.index(best_distance)
     
-    print(best_distance)
+
+    #gerar_grifico_aprendizagem(distance_history)
+    print(f'Distância: {best_distance} || obtida no episódio: {min_d_ep}\n')
 
     '''results_df = pd.DataFrame({
         'Episode': list(range(episodes)),
@@ -317,12 +345,12 @@ def train_dqn(instance, r_type, e_type, matrix_d, n_points, episodes, alpha, gam
 instance_names = ['br17.atsp']
 instance_folder = 'instances'
 
-learning_rate = 0.01  # Learning rate
-epsilon = 1.0  # Exploration rate
+learning_rate = 0.75 # Learning rate
+epsilon = 0.01  # Exploration rate
 
 epsilon_decay_types = ['linear', 'concave', 'convex', 'step']
-reward_types = ['R1'] #, 'R2', 'R3']
-gamma_set = [0.01, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 0.99]  # Discount factors
+reward_types = ['R2'] #, 'R2', 'R3']
+gamma_set = [0.15]#[0.01, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 0.99]  # Discount factors
 
 for instance_name in instance_names:
     problem = get_instance(instance_name)
@@ -336,7 +364,7 @@ for instance_name in instance_names:
     for gamma in gamma_set:
         for e_type in epsilon_decay_types:
             for r_type in reward_types:
-                print(f"Training on instance '{instance_name}' with epsilon='{e_type}', reward='{r_type} and gamma={gamma}'")
+                print(f"Training on instance '{instance_name}' with epsilon='{epsilon}', reward='{r_type} and gamma={gamma}'")
                 train_q_learning(
                     instance=instance_name,
                     r_type=r_type,
