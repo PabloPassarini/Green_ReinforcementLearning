@@ -1,17 +1,4 @@
 #!/usr/bin/env python3
-"""
-Unified plotting script.
-
-This script:
-1. Loads master_episodes.csv and master_summary.csv from a user-specified folder.
-2. Generates all learning-curve plots for every combination of:
-       e_type ∈ {linear, convex, concave, step}
-       r_type ∈ {R1, R2, R3}
-3. Generates BestPath route plots using the corresponding .tsp instance.
-4. Saves all PNGs under:
-       <folder>/plots/learning_curves/
-       <folder>/plots/bestpaths/
-"""
 
 import re
 from pathlib import Path
