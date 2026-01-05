@@ -14,11 +14,11 @@ def epsilon_decay(e_type: str, episode: int, total_episodes: int,epsilon_init: f
     if e_type == "fixed":
         return epsilon_init
     if e_type == "linear":
-        return max(0.0, 1.0 - (episode / total_episodes))
+        return epsilon_init * (1.0 - episode / total_episodes)
     if e_type == "concave":
-        return 0.999 ** episode
+        return epsilon_init * (0.999 ** episode)
     if e_type == "convex":
-        return max(0.0, - (episode / total_episodes) ** 6 + 1.0)
+        return epsilon_init * (1.0 - (episode / total_episodes) ** 6)
     if e_type == "step":
-        return max(0.0, 1.0 - 0.1 * (episode // 1000))
+        return epsilon_init * (1.0 - 0.1 * (episode // 1000))
     raise ValueError(f"Unknown epsilon decay type: {e_type}")

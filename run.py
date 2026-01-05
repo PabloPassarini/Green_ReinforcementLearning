@@ -33,10 +33,11 @@ def run_algorithm(
     Run the selected algorithm across instances and hyperparameter grid, repeated as requested.
     Only master CSVs are written by trainers (master_episodes.csv and master_summary.csv).
     """
-    epsilon_decay_types = ["fixed"]
-    reward_types = ["R1"]
+    epsilon_decay_types = ["linear", "convex", "concave", "step"]
+    reward_types = ["R1","R2","R3"]
     gamma_set = [0.15]
     alpha = 0.75
+    epsilon = 0.01
 
     run_timestamp = timestamp_tag()
 
@@ -129,8 +130,8 @@ def main() -> None:
         help="Select a single algorithm or run all three (qlearning, sarsa, doubleq)",
     )
     parser.add_argument("--episodes", type=int, default=10000)
-    parser.add_argument("--epsilon", type=float, default=1.0)
-    parser.add_argument("--alpha", type=float, default=0.01)
+    parser.add_argument("--epsilon", type=float)
+    parser.add_argument("--alpha", type=float)
     parser.add_argument(
         "--instances",
         nargs="+",
