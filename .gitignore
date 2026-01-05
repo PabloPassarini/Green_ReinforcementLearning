@@ -5,3 +5,4 @@ __pycache__/
 *sarsa_*.csv
 *double_q_*.csv
 *.bak
+*.png
