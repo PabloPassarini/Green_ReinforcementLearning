@@ -25,7 +25,6 @@ def run_algorithm(
     algorithm: str,
     instances: List[str],
     episodes: int,
-    epsilon: float,
     alpha: float,
     repeat: int,
 ) -> None:
@@ -33,11 +32,11 @@ def run_algorithm(
     Run the selected algorithm across instances and hyperparameter grid, repeated as requested.
     Only master CSVs are written by trainers (master_episodes.csv and master_summary.csv).
     """
-    epsilon_decay_types = ["linear", "convex", "concave", "step"]
+    epsilon_decay_types = ["linear", "convex", "concave", "step", "fixed"]
     reward_types = ["R1","R2","R3"]
-    gamma_set = [0.15]
+    gamma = 0.15
     alpha = 0.75
-    epsilon = 0.01
+    epsilon_set = [0.01, 0.05, 0.10]
 
     run_timestamp = timestamp_tag()
 
@@ -58,7 +57,7 @@ def run_algorithm(
             )
             n_points = problem.dimension
 
-            for gamma in gamma_set:
+            for epsilon in epsilon_set:
                 for e_type in epsilon_decay_types:
                     for r_type in reward_types:
                         print(
@@ -130,7 +129,6 @@ def main() -> None:
         help="Select a single algorithm or run all three (qlearning, sarsa, doubleq)",
     )
     parser.add_argument("--episodes", type=int, default=10000)
-    parser.add_argument("--epsilon", type=float)
     parser.add_argument("--alpha", type=float)
     parser.add_argument(
         "--instances",
@@ -151,16 +149,16 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.algorithm == "qlearning":
-        run_algorithm("qlearning", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
+        run_algorithm("qlearning", args.instances, args.episodes, args.alpha, args.repeat)
     elif args.algorithm == "sarsa":
-        run_algorithm("sarsa", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
+        run_algorithm("sarsa", args.instances, args.episodes, args.alpha, args.repeat)
     elif args.algorithm == "doubleq":
-        run_algorithm("doubleq", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
+        run_algorithm("doubleq", args.instances, args.episodes, args.alpha, args.repeat)
     else:
         # run all three
-        run_algorithm("qlearning", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
-        run_algorithm("sarsa", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
-        run_algorithm("doubleq", args.instances, args.episodes, args.epsilon, args.alpha, args.repeat)
+        run_algorithm("qlearning", args.instances, args.episodes, args.alpha, args.repeat)
+        run_algorithm("sarsa", args.instances, args.episodes, args.alpha, args.repeat)
+        run_algorithm("doubleq", args.instances, args.episodes, args.alpha, args.repeat)
 
 
 if __name__ == "__main__":
