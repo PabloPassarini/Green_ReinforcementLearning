@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List, Tuple, Optional
 
 import numpy as np
-from codecarbon import EmissionsTracker
+from codecarbon import EmissionsTracker, OfflineEmissionsTracker
 
 from utils.file_utils import save_per_episode, save_summary
 
@@ -51,18 +51,22 @@ class BaseTrainer:
         self.results_dir.mkdir(parents=True, exist_ok=True)
 
         # include run index tag when provided to avoid overwrites
-        run_tag = f"_r{self.run_index}" if self.run_index else ""
+        run_tag = f"_l{self.run_index}" if self.run_index else ""
         self.base_name = (
             f"{algorithm_name}_{self.instance}"
-            f"_gamma{self.gamma}{run_tag}"
+            f"_{self.epsilon}_{self.e_type}_{self.r_type}{run_tag}"
         )
+        print(f"Initialized trainer: {self.base_name}")
 
-    def _start_tracker(self) -> EmissionsTracker:
-        """Start and return a CodeCarbon EmissionsTracker saving to results_dir."""
-        tracker = EmissionsTracker(
+    def _start_tracker(self) -> OfflineEmissionsTracker:
+        """Start and return a CodeCarbon OfflineEmissionsTracker saving to results_dir."""
+        tracker = OfflineEmissionsTracker(
             project_name=f"{self.base_name}",
             output_dir=self.results_dir,
             output_file=f"{self.base_name}_emissions.csv",
+            country_iso_code="IRL",
+            country_2letter_iso_code="IE",
+            region = "leinster",
             allow_multiple_runs=True,
             tracking_mode="process",
             rapl_include_dram=True,
@@ -71,7 +75,7 @@ class BaseTrainer:
         tracker.start()
         return tracker
 
-    def _finalize_tracking(self, tracker: EmissionsTracker):
+    def _finalize_tracking(self, tracker: OfflineEmissionsTracker):
         """Stop tracker and return CodeCarbon's final_emissions_data object."""
         _ = tracker.stop()
         return tracker.final_emissions_data
@@ -89,10 +93,10 @@ class BaseTrainer:
             "instance": self.instance,
             "r_type": self.r_type,
             "e_type": self.e_type,
-            "gamma": self.gamma,
-            "alpha": self.alpha,
+            "epsilon": self.epsilon,
+            "epsilon_init": self.epsilon_init,
         }
-        per_path = save_per_episode(self.results_dir, self.base_name, self.distance_history, metadata,self.epsilon_history)
+        master_path = save_per_episode(self.results_dir, self.base_name, self.distance_history, metadata, self.epsilon_history)
         summary_row = {
             **metadata,
             "BestEpisode": best_episode,
@@ -111,7 +115,7 @@ class BaseTrainer:
             #"Water_Consumed_L": getattr(emissions_data, "water_consumed", None),
         }
         summary_path = save_summary(self.results_dir, self.base_name, summary_row)
-        return str(per_path), str(summary_path)
+        return str(master_path), str(summary_path)
 
     def train(self) -> Tuple[str, str]:
         """Train method to implement in subclasses."""

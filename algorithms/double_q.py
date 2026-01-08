@@ -9,11 +9,6 @@ from utils.reward_utils import reward_function, epsilon_decay
 
 
 class DoubleQTrainer(BaseTrainer):
-    """
-    Double Q-Learning trainer for TSP.
-    Implements two Q-tables (Q1, Q2) and alternates updates between them.
-    Saves only master_episodes.csv and master_summary.csv via BaseTrainer._save_results.
-    """
 
     def __init__(
         self,
@@ -50,10 +45,7 @@ class DoubleQTrainer(BaseTrainer):
         self.q2_table = np.zeros((n_points, n_points))
 
     def train(self) -> Tuple[str, str]:
-        """
-        Run Double Q-Learning training loop.
-        Returns paths to master episodes and master summary (via BaseTrainer._save_results).
-        """
+        
         tracker = self._start_tracker()
 
         try:

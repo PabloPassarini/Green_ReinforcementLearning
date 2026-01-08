@@ -118,67 +118,78 @@ def main() -> None:
 
     epsilon_decay_types = ["linear", "convex", "concave", "step"]
     reward_types = ["R1", "R2", "R3"]
+    instances = [
+            "br17.atsp",
+            "berlin52.tsp",
+            "eil51.tsp",
+            "ftv33.atsp",
+            "ftv64.atsp",
+            "kroA100.tsp",
+            "st70.tsp",
+            "tsp225.tsp",
+        ]
 
     for e_type in epsilon_decay_types:
         for r_type in reward_types:
+            for instance in instances:
+                for run_index in range(1, 6):
+                    print(f"\n=== Processing learning curves: e_type={e_type}, r_type={r_type} ===")
 
-            print(f"\n=== Processing learning curves: e_type={e_type}, r_type={r_type} ===")
+                    df_plot = df_ep[
+                        (df_ep["instance"] == instance) &
+                        (df_ep["run_index"] == run_index) &
+                        (df_ep["e_type"] == e_type) &
+                        (df_ep["r_type"] == r_type)
+                    ]
 
-            df_plot = df_ep[
-                (df_ep["instance"] == "br17.atsp") &
-                (df_ep["run_index"] == 1) &
-                (df_ep["e_type"] == e_type) &
-                (df_ep["r_type"] == r_type)
-            ]
+                    if df_plot.empty:
+                        print(f"⚠ No data found for e_type={e_type}, r_type={r_type}")
+                        continue
 
-            if df_plot.empty:
-                print(f"⚠ No data found for e_type={e_type}, r_type={r_type}")
-                continue
+                    df_plot = df_plot.sort_values("episode")
 
-            df_plot = df_plot.sort_values("episode")
+                    # -------------------------
+                    # Plot 1 — Distance × Episode
+                    # -------------------------
+                    plt.figure(figsize=(10, 6))
+                    plt.plot(df_plot["episode"], df_plot["distance"])
+                    plt.xlabel("Episode")
+                    plt.ylabel("Distance")
+                    plt.title(f"Distance × Episode\n(e_type={e_type}, r_type={r_type})")
+                    plt.grid(True)
+                    plt.tight_layout()
 
-            # -------------------------
-            # Plot 1 — Distance × Episode
-            # -------------------------
-            plt.figure(figsize=(10, 6))
-            plt.plot(df_plot["episode"], df_plot["distance"])
-            plt.xlabel("Episode")
-            plt.ylabel("Distance")
-            plt.title(f"Distance × Episode\n(e_type={e_type}, r_type={r_type})")
-            plt.grid(True)
-            plt.tight_layout()
+                    out1 = curves_dir / f"distance_episode__e_{e_type}__r_{r_type}.png"
+                    plt.savefig(out1, dpi=150)
+                    plt.close()
+                    print(f"Saved: {out1}")
 
-            out1 = curves_dir / f"distance_episode__e_{e_type}__r_{r_type}.png"
-            plt.savefig(out1, dpi=150)
-            plt.close()
-            print(f"Saved: {out1}")
+                    # -------------------------
+                    # Plot 2 — Distance + Epsilon × Episode
+                    # -------------------------
+                    fig, ax1 = plt.subplots(figsize=(10, 6))
 
-            # -------------------------
-            # Plot 2 — Distance + Epsilon × Episode
-            # -------------------------
-            fig, ax1 = plt.subplots(figsize=(10, 6))
+                    ax1.plot(df_plot["episode"], df_plot["distance"], label="Distance")
+                    ax1.set_xlabel("Episode")
+                    ax1.set_ylabel("Distance")
+                    ax1.grid(True)
 
-            ax1.plot(df_plot["episode"], df_plot["distance"], label="Distance")
-            ax1.set_xlabel("Episode")
-            ax1.set_ylabel("Distance")
-            ax1.grid(True)
+                    ax2 = ax1.twinx()
+                    ax2.plot(df_plot["episode"], df_plot["epsilon"], linestyle="--",
+                            color="orange", label="Epsilon")
+                    ax2.set_ylabel("Epsilon")
 
-            ax2 = ax1.twinx()
-            ax2.plot(df_plot["episode"], df_plot["epsilon"], linestyle="--",
-                     color="orange", label="Epsilon")
-            ax2.set_ylabel("Epsilon")
+                    lines_1, labels_1 = ax1.get_legend_handles_labels()
+                    lines_2, labels_2 = ax2.get_legend_handles_labels()
+                    ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="best")
 
-            lines_1, labels_1 = ax1.get_legend_handles_labels()
-            lines_2, labels_2 = ax2.get_legend_handles_labels()
-            ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="best")
+                    plt.title(f"Distance and Epsilon × Episode\n(e_type={e_type}, r_type={r_type})")
+                    plt.tight_layout()
 
-            plt.title(f"Distance and Epsilon × Episode\n(e_type={e_type}, r_type={r_type})")
-            plt.tight_layout()
-
-            out2 = curves_dir / f"distance_epsilon_episode__e_{e_type}__r_{r_type}.png"
-            plt.savefig(out2, dpi=150)
-            plt.close()
-            print(f"Saved: {out2}")
+                    out2 = curves_dir / f"distance_epsilon_episode__e_{e_type}__r_{r_type}.png"
+                    plt.savefig(out2, dpi=150)
+                    plt.close()
+                    print(f"Saved: {out2}")
 
     # ============================================================
     # PART 2 — BESTPATH ROUTE PLOTS
@@ -210,17 +221,18 @@ def main() -> None:
             route = [pid + 1 for pid in route]
 
         run_idx = row["run_index"]
-        gamma = row["gamma"]
+        r_type = row["r_type"]
+        e_type = row["e_type"]
         best_episode = int(row["BestEpisode"]) if "BestEpisode" in row else -1
 
-        out_file = bestpaths_dir / f"run_{run_idx}_gamma_{gamma}__{inst_raw.replace('.tsp','')}.png"
-        title = f"{inst_raw} - run {run_idx}, gamma={gamma}"
+        out_file = bestpaths_dir / f"run_{run_idx}_{r_type}_{e_type}__{inst_raw.replace('.tsp','')}.png"
+        title = f"{inst_raw} - run {run_idx}, {r_type}, {e_type}"
 
         try:
             plot_route(coords, route, title, best_episode, out_file)
             print(f"Saved: {out_file}")
         except Exception as exc:
-            print(f"Failed to plot {inst_raw} run {run_idx} gamma {gamma}: {exc}")
+            print(f"Failed to plot {inst_raw} run {run_idx} {r_type} {e_type}: {exc}")
 
 
 if __name__ == "__main__":

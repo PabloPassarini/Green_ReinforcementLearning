@@ -34,7 +34,6 @@ def save_per_episode(
     distances: List[float],
     metadata: Dict[str, object],
     epsilons: List[float],
-    master_episodes_name: str = "master_episodes.csv",
 ) -> Path:
     """
     Save per-run episode CSV and append per-episode rows to a master CSV.
@@ -43,30 +42,35 @@ def save_per_episode(
     """
     ensure_dir(results_dir)
     #per_df = pd.DataFrame({"Episode": list(range(len(distances))), "Distance": distances})
-    per_path = results_dir / f"{base_name}_results.csv"
+    #per_path = results_dir / f"{base_name}_results.csv"
     #per_df.to_csv(per_path, index=False)
 
     rows = []
     run_idx = metadata.get("run_index", 0)
+    instance = metadata.get("instance")
+
     for i, d in enumerate(distances):
         rows.append(
             {
                 "run_index": run_idx,
                 "algorithm": metadata.get("algorithm"),
-                "instance": metadata.get("instance"),
+                "instance": instance,
                 "r_type": metadata.get("r_type"),
                 "e_type": metadata.get("e_type"),
-                "gamma": metadata.get("gamma"),
-                "alpha": metadata.get("alpha"),
+                "epsilon_init": metadata.get("epsilon_init"),
                 "epsilon": epsilons[i],
                 "episode": i,
                 "distance": d,
             }
         )
+    
     master_df = pd.DataFrame(rows)
-    master_path = results_dir / master_episodes_name
+
+    filename = f"{run_idx}_{instance}_master_episodes.csv"
+    master_path = results_dir / filename
+
     append_df_to_csv(master_df, master_path)
-    return per_path
+    return master_path
 
 
 def save_summary(
