@@ -91,17 +91,12 @@ def main() -> None:
     # Ask user for folder containing both CSVs
     folder = input("Enter the folder containing master_episodes.csv and master_summary.csv: ").strip()
     folder = Path(folder)
-
-    episodes_path = folder / "master_episodes.csv"
     summary_path = folder / "master_summary.csv"
-
-    if not episodes_path.exists():
-        raise FileNotFoundError(f"master_episodes.csv not found at {episodes_path}")
 
     if not summary_path.exists():
         raise FileNotFoundError(f"master_summary.csv not found at {summary_path}")
 
-    df_ep = pd.read_csv(episodes_path)
+    
     df_sum = pd.read_csv(summary_path)
 
     # Output directories
@@ -116,7 +111,8 @@ def main() -> None:
     # PART 1 — LEARNING CURVES
     # ============================================================
 
-    epsilon_decay_types = ["linear", "convex", "concave", "step"]
+    epsilon_decay_types = ["linear", "convex", "concave", "step", "fixed"]
+    epsilon_init = [0.01, 0.05, 0.10]
     reward_types = ["R1", "R2", "R3"]
     instances = [
             "br17.atsp",
@@ -130,66 +126,92 @@ def main() -> None:
         ]
 
     for e_type in epsilon_decay_types:
-        for r_type in reward_types:
-            for instance in instances:
-                for run_index in range(1, 6):
-                    print(f"\n=== Processing learning curves: e_type={e_type}, r_type={r_type} ===")
+        for epsilon_i in epsilon_init:
+            for r_type in reward_types:
 
-                    df_plot = df_ep[
-                        (df_ep["instance"] == instance) &
-                        (df_ep["run_index"] == run_index) &
-                        (df_ep["e_type"] == e_type) &
-                        (df_ep["r_type"] == r_type)
-                    ]
+                for instance in instances:
+                    for run_index in range(4, 6):
 
-                    if df_plot.empty:
-                        print(f"⚠ No data found for e_type={e_type}, r_type={r_type}")
-                        continue
+                        episodes_path = folder / f"{run_index}_{instance}_master_episodes.csv"
+                        if not episodes_path.exists():
+                            raise FileNotFoundError(f"File not found: {episodes_path}")
 
-                    df_plot = df_plot.sort_values("episode")
+                        df = pd.read_csv(episodes_path)
 
-                    # -------------------------
-                    # Plot 1 — Distance × Episode
-                    # -------------------------
-                    plt.figure(figsize=(10, 6))
-                    plt.plot(df_plot["episode"], df_plot["distance"])
-                    plt.xlabel("Episode")
-                    plt.ylabel("Distance")
-                    plt.title(f"Distance × Episode\n(e_type={e_type}, r_type={r_type})")
-                    plt.grid(True)
-                    plt.tight_layout()
+                        df_plot = df[
+                            (df["instance"] == instance) &
+                            (df["run_index"] == run_index) &
+                            (df["e_type"] == e_type) &
+                            (df["r_type"] == r_type) &
+                            (df["epsilon_init"] == epsilon_i)
+                        ].sort_values("episode")
 
-                    out1 = curves_dir / f"distance_episode__e_{e_type}__r_{r_type}.png"
-                    plt.savefig(out1, dpi=150)
-                    plt.close()
-                    print(f"Saved: {out1}")
+                        if df_plot.empty:
+                            print(f"⚠ No data: instance={instance}, run={run_index}")
+                            continue
 
-                    # -------------------------
-                    # Plot 2 — Distance + Epsilon × Episode
-                    # -------------------------
-                    fig, ax1 = plt.subplots(figsize=(10, 6))
+                        # ==================================================
+                        # Plot 1 — Distance × Episode
+                        # ==================================================
+                        plt.figure(figsize=(10, 6))
+                        plt.plot(df_plot["episode"], df_plot["distance"])
+                        plt.xlabel("Episode")
+                        plt.ylabel("Distance")
+                        plt.title(f"Distance × Episode\n({instance}, run={run_index}, e={e_type}, r={r_type})")
+                        plt.grid(True)
+                        plt.tight_layout()
 
-                    ax1.plot(df_plot["episode"], df_plot["distance"], label="Distance")
-                    ax1.set_xlabel("Episode")
-                    ax1.set_ylabel("Distance")
-                    ax1.grid(True)
+                        out_dist = curves_dir / (
+                            f"distance_episode_{instance}_run_{run_index}"
+                            f"_{e_type}_{r_type}.png"
+                        )
+                        plt.savefig(out_dist, dpi=150)
+                        plt.close()
 
-                    ax2 = ax1.twinx()
-                    ax2.plot(df_plot["episode"], df_plot["epsilon"], linestyle="--",
-                            color="orange", label="Epsilon")
-                    ax2.set_ylabel("Epsilon")
+                        print(f"Saved: {out_dist}")
 
-                    lines_1, labels_1 = ax1.get_legend_handles_labels()
-                    lines_2, labels_2 = ax2.get_legend_handles_labels()
-                    ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc="best")
+                        # ==================================================
+                        # Plot 2 — Distance + Epsilon × Episode
+                        # ==================================================
+                        fig, ax1 = plt.subplots(figsize=(10, 6))
 
-                    plt.title(f"Distance and Epsilon × Episode\n(e_type={e_type}, r_type={r_type})")
-                    plt.tight_layout()
+                        ax1.plot(df_plot["episode"],
+                                df_plot["distance"],
+                                label="Distance",
+                                linewidth=1.2)
+                        ax1.set_xlabel("Episode")
+                        ax1.set_ylabel("Distance")
+                        ax1.grid(True)
 
-                    out2 = curves_dir / f"distance_epsilon_episode__e_{e_type}__r_{r_type}.png"
-                    plt.savefig(out2, dpi=150)
-                    plt.close()
-                    print(f"Saved: {out2}")
+                        ax2 = ax1.twinx()
+                        ax2.plot(
+                            df_plot["episode"],
+                            df_plot["epsilon"],
+                            linestyle=":",
+                            linewidth=2.0,
+                            color="orange",
+                            label="Epsilon"
+                        )
+                        ax2.set_ylabel("Epsilon")
+
+                        lines1, labels1 = ax1.get_legend_handles_labels()
+                        lines2, labels2 = ax2.get_legend_handles_labels()
+                        ax1.legend(lines1 + lines2, labels1 + labels2, loc="best")
+
+                        plt.title(
+                            f"Distance and Epsilon × Episode\n"
+                            f"({instance}, run={run_index}, e={e_type}, r={r_type})"
+                        )
+                        plt.tight_layout()
+
+                        out_dual = curves_dir / (
+                            f"distance_epsilon_episode_{instance}_run_{run_index}"
+                            f"__{e_type}__{r_type}.png"
+                        )
+                        plt.savefig(out_dual, dpi=150)
+                        plt.close()
+
+                        print(f"Saved: {out_dual}")
 
     # ============================================================
     # PART 2 — BESTPATH ROUTE PLOTS
